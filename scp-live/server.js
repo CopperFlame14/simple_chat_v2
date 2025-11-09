@@ -152,18 +152,24 @@ wss.on('connection', (ws, req) => {
       
       else if (data.type === 'SCP_MESSAGE') {
         // Relay message between clients
+        console.log(`💬 Relaying message from ${ws === activeSession.client1 ? activeSession.client1Name : activeSession.client2Name}`);
+        
         if (ws === activeSession.client1 && activeSession.client2) {
+          // Message from Client 1 to Client 2
           activeSession.client2.send(JSON.stringify({
             type: 'SCP_MESSAGE',
             message: data.message,
             sender: activeSession.client1Name
           }));
+          console.log(`   → Sent to ${activeSession.client2Name}`);
         } else if (ws === activeSession.client2 && activeSession.client1) {
+          // Message from Client 2 to Client 1
           activeSession.client1.send(JSON.stringify({
             type: 'SCP_MESSAGE',
             message: data.message,
             sender: activeSession.client2Name
           }));
+          console.log(`   → Sent to ${activeSession.client1Name}`);
         }
       }
       
