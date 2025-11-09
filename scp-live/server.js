@@ -93,7 +93,15 @@ wss.on('connection', (ws, req) => {
       
       else if (data.type === 'CLIENT_CONNECT') {
         // Client attempting to connect with code
-        if (data.code === activeSession.code) {
+        const clientCode = data.code.trim().toUpperCase();
+        const sessionCode = activeSession.code.trim().toUpperCase();
+        
+        console.log(`🔐 Client attempting connection:`);
+        console.log(`   Client code: "${clientCode}"`);
+        console.log(`   Session code: "${sessionCode}"`);
+        console.log(`   Match: ${clientCode === sessionCode}`);
+        
+        if (clientCode === sessionCode) {
           if (!activeSession.client1) {
             // First client
             activeSession.client1 = ws;
@@ -103,7 +111,7 @@ wss.on('connection', (ws, req) => {
               waitingForOther: true
             }));
             notifyServerOfStatus();
-            console.log(`Client 1 (${activeSession.client1Name}) connected`);
+            console.log(`✅ Client 1 (${activeSession.client1Name}) connected`);
           } else if (!activeSession.client2) {
             // Second client
             activeSession.client2 = ws;
@@ -123,9 +131,10 @@ wss.on('connection', (ws, req) => {
             }
             
             notifyServerOfStatus();
-            console.log(`Client 2 (${activeSession.client2Name}) connected - Session full`);
+            console.log(`✅ Client 2 (${activeSession.client2Name}) connected - Session full`);
           } else {
             // Session full
+            console.log(`❌ Connection rejected - Session full`);
             ws.send(JSON.stringify({
               type: 'CONNECTION_REJECTED',
               reason: 'Session already has 2 active clients'
@@ -133,6 +142,7 @@ wss.on('connection', (ws, req) => {
           }
         } else {
           // Invalid code
+          console.log(`❌ Connection rejected - Invalid code`);
           ws.send(JSON.stringify({
             type: 'CONNECTION_REJECTED',
             reason: 'Invalid session code'
