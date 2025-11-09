@@ -306,7 +306,10 @@ function handleClientMessage(e) {
   const msgId = ++messageIdCounter;
   const message = `SCP/1.1 | MSG | id=${msgId} | ${text}`;
 
+  // Display our own message immediately
   addConsoleMessage("clientConsole", `You: ${text}`, "client");
+  
+  console.log(`📤 Sending message: "${text}"`);
   ws.send(JSON.stringify({ type: "SCP_MESSAGE", message }));
   input.value = "";
 }
@@ -323,8 +326,28 @@ function disconnect() {
 // ====================== SHARED ======================
 function handleSCPMessage(message, sender) {
   const consoleId = isServer ? "serverConsole" : "clientConsole";
-  const displayText = sender ? `${sender}: ${message.split('|').pop().trim()}` : message;
-  addConsoleMessage(consoleId, displayText, sender === myName ? "client" : "server");
+  
+  // Extract the actual message text from SCP format
+  // Format: "SCP/1.1 | MSG | id=X | actual message"
+  let displayText = message;
+  if (message.includes('|')) {
+    const parts = message.split('|');
+    if (parts.length >= 4) {
+      displayText = parts[3].trim(); // Get the actual message content
+    }
+  }
+  
+  // Determine if this is our message or the other client's
+  const isMyMessage = sender === myName;
+  const className = isMyMessage ? "client" : "server";
+  const prefix = isMyMessage ? "You" : sender;
+  
+  const finalText = `${prefix}: ${displayText}`;
+  
+  console.log(`📨 Message received - Sender: "${sender}", My name: "${myName}", Is mine: ${isMyMessage}`);
+  console.log(`   Display as: ${finalText}`);
+  
+  addConsoleMessage(consoleId, finalText, className);
 }
 
 function addConsoleMessage(consoleId, text, className) {
