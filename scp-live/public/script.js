@@ -44,8 +44,14 @@ function connectWebSocket(onOpenCallback) {
 // ====================== SERVER ======================
 function initServer() {
   isServer = true;
+  
+  // Add console log for debugging
+  addConsoleMessage("serverConsole", "Initializing server connection...", "system");
+  
   connectWebSocket(() => {
+    console.log("Sending SERVER_INIT message");
     ws.send(JSON.stringify({ type: "SERVER_INIT" }));
+    addConsoleMessage("serverConsole", "Requesting session code from server...", "system");
   });
 }
 
