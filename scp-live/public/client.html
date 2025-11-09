@@ -14,7 +14,7 @@
     </header>
 
     <div class="connection-panel" id="connectionPanel">
-      <h2>Connect to Server</h2>
+      <h2>Connect to Chat Session</h2>
       <form id="connectForm" class="connect-form">
         <div class="form-group">
           <label for="clientName">Your Name</label>
@@ -41,19 +41,25 @@
         <button type="submit" class="connect-btn">Connect</button>
       </form>
       <div id="connectionError" class="error-message" style="display: none;"></div>
+      
+      <div class="info-box">
+        <p style="font-size: 0.9em; color: #9aa7b2; text-align: center; margin-top: 20px;">
+          💡 Two clients can connect to the same session code to chat with each other
+        </p>
+      </div>
     </div>
 
     <div class="chat-container" id="chatContainer" style="display: none;">
-      <div class="connection-status connected">
+      <div class="connection-status waiting">
         <div class="status-indicator">
           <span class="status-dot"></span>
-          <span class="status-text">Connected</span>
+          <span class="status-text">Connecting...</span>
         </div>
         <button onclick="disconnect()" class="disconnect-btn">Disconnect</button>
       </div>
 
       <div class="console-panel">
-        <h3>Client Console</h3>
+        <h3>Chat Console</h3>
         <div class="console" id="clientConsole"></div>
       </div>
 
@@ -62,7 +68,7 @@
           <input 
             type="text" 
             id="messageInput" 
-            placeholder="Type a message to server..." 
+            placeholder="Type a message..." 
             autocomplete="off"
           />
           <button type="submit">Send</button>
