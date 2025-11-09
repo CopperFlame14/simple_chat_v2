@@ -20,21 +20,28 @@ function connectWebSocket(onOpenCallback) {
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
-    console.log("🟢 WebSocket connected");
+    console.log("🟢 WebSocket connected successfully");
     if (onOpenCallback) onOpenCallback();
   };
 
   ws.onmessage = (event) => {
+    console.log("📨 WebSocket message received:", event.data);
     const data = JSON.parse(event.data);
     handleWebSocketMessage(data);
   };
 
   ws.onerror = (error) => {
     console.error("❌ WebSocket error:", error);
+    if (isServer) {
+      addConsoleMessage("serverConsole", "WebSocket connection error", "error");
+    }
   };
 
   ws.onclose = () => {
     console.log("🔴 WebSocket closed");
+    if (isServer) {
+      addConsoleMessage("serverConsole", "WebSocket connection closed", "error");
+    }
     if (isClient && hasConnected) {
       showError("Connection lost. Please refresh and try again.");
     }
@@ -81,17 +88,23 @@ function handleClientConnect(e) {
 
   myName = clientName;
 
+  console.log(`🔌 Attempting to connect with code: "${sessionCode}"`);
+  
   connectWebSocket(() => {
-    ws.send(JSON.stringify({
+    const connectMessage = {
       type: "CLIENT_CONNECT",
       code: sessionCode,
       clientName: clientName
-    }));
+    };
+    console.log("📤 Sending connection request:", connectMessage);
+    ws.send(JSON.stringify(connectMessage));
   });
 }
 
 // ====================== HANDLERS ======================
 function handleWebSocketMessage(data) {
+  console.log("Handling message type:", data.type, data);
+  
   switch (data.type) {
     case "SESSION_CODE":
       displaySessionCode(data.code);
@@ -120,6 +133,8 @@ function handleWebSocketMessage(data) {
     case "SCP_MESSAGE":
       handleSCPMessage(data.message, data.sender);
       break;
+    default:
+      console.warn("Unknown message type:", data.type);
   }
 }
 
@@ -127,7 +142,18 @@ function handleWebSocketMessage(data) {
 function displaySessionCode(code) {
   currentSessionCode = code;
   const codeElement = document.querySelector(".code-text");
-  if (codeElement) codeElement.textContent = code;
+  if (codeElement) {
+    codeElement.textContent = code;
+    console.log("Session code updated:", code);
+  } else {
+    console.error("Could not find .code-text element");
+  }
+  
+  // Add console message
+  const consoleDiv = document.getElementById("serverConsole");
+  if (consoleDiv) {
+    addConsoleMessage("serverConsole", `Session code generated: ${code}`, "system");
+  }
 }
 
 function handleStatusUpdate(data) {
