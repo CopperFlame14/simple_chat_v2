@@ -197,11 +197,15 @@ body {
 }
 
 .connection-status {
-  text-align: center;
-  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
   background: rgba(255,255,255,0.02);
   border-radius: 8px;
+  margin-bottom: 20px;
 }
+
 
 .status-indicator {
   display: flex;
@@ -234,6 +238,19 @@ body {
   font-size: 1.2em;
   color: #9aa7b2;
 }
+
+.waiting .status-dot {
+  background: #ffa500;
+}
+
+.connected .status-dot {
+  background: #7df59f;
+}
+
+.error .status-dot {
+  background: #ff7b7b;
+}
+
 
 /* Connection Panel (Client) */
 .connection-panel {
@@ -467,4 +484,5 @@ body {
   .message-form button {
     width: 100%;
   }
+
 }
