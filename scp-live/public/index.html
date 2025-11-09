@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCP Live Implementation</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="landing-header">
+      <h1>🔄 SCP Live Implementation</h1>
+      <p class="subtitle">Two-Way Simple Chat Protocol</p>
+      <p class="description">Real-time bidirectional communication with session-based connections</p>
+    </header>
+
+    <div class="options-container">
+      <div class="option-card" onclick="location.href='/server'">
+        <div class="icon">🖥️</div>
+        <h2>Server</h2>
+        <p>Generate a session code and wait for client connections</p>
+        <button class="option-btn">Start as Server</button>
+      </div>
+
+      <div class="option-card" onclick="location.href='/client'">
+        <div class="icon">💻</div>
+        <h2>Client</h2>
+        <p>Connect to a server using a session code</p>
+        <button class="option-btn client-btn">Start as Client</button>
+      </div>
+    </div>
+
+    <footer class="landing-footer">
+      <p>SCP/1.1 Protocol | Multi-threaded Architecture | Session-Based Security</p>
+      <p style="margin-top: 10px; font-size: 0.9em;">Computer Networks Lab Project</p>
+    </footer>
+  </div>
+</body>
+</html>

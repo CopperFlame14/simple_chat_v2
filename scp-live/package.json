@@ -1,0 +1,19 @@
+{
+  "name": "scp-live",
+  "version": "1.0.0",
+  "description": "Simple Chat Protocol Live Implementation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": ["websocket", "chat", "protocol", "scp"],
+  "author": "Your Name",
+  "license": "MIT"
+}

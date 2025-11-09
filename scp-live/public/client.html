@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCP Client</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <h1>💻 SCP Client</h1>
+      <a href="/" class="back-btn">← Back to Home</a>
+    </header>
+
+    <div class="connection-panel" id="connectionPanel">
+      <h2>Connect to Server</h2>
+      <form id="connectForm" class="connect-form">
+        <div class="form-group">
+          <label for="clientName">Your Name</label>
+          <input 
+            type="text" 
+            id="clientName" 
+            placeholder="Enter your name" 
+            required
+            autocomplete="off"
+          />
+        </div>
+        <div class="form-group">
+          <label for="sessionCodeInput">Session Code</label>
+          <input 
+            type="text" 
+            id="sessionCodeInput" 
+            placeholder="SCP-XXXXXX" 
+            required
+            autocomplete="off"
+            maxlength="10"
+            style="text-transform: uppercase;"
+          />
+        </div>
+        <button type="submit" class="connect-btn">Connect</button>
+      </form>
+      <div id="connectionError" class="error-message" style="display: none;"></div>
+    </div>
+
+    <div class="chat-container" id="chatContainer" style="display: none;">
+      <div class="connection-status connected">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span class="status-text">Connected</span>
+        </div>
+        <button onclick="disconnect()" class="disconnect-btn">Disconnect</button>
+      </div>
+
+      <div class="console-panel">
+        <h3>Client Console</h3>
+        <div class="console" id="clientConsole"></div>
+      </div>
+
+      <div class="message-input-container">
+        <form id="messageForm" class="message-form">
+          <input 
+            type="text" 
+            id="messageInput" 
+            placeholder="Type a message to server..." 
+            autocomplete="off"
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    initClient();
+  </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCP Server</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <h1>🖥️ SCP Server</h1>
+      <a href="/" class="back-btn">← Back to Home</a>
+    </header>
+
+    <div class="session-panel">
+      <div class="session-code-display">
+        <h2>Session Code</h2>
+        <div class="code-box" id="sessionCode">
+          <span class="code-text">XXXXXX</span>
+          <button class="copy-btn" id="copyBtn" onclick="copySessionCode()">
+            <span id="copyIcon">📋</span>
+          </button>
+        </div>
+        <p class="code-instruction">Share this code with your client to connect</p>
+      </div>
+
+      <div class="connection-status" id="connectionStatus">
+        <div class="status-indicator waiting">
+          <span class="status-dot"></span>
+          <span class="status-text">Waiting for client...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-container">
+      <div class="console-panel">
+        <h3>Server Console</h3>
+        <div class="console" id="serverConsole">
+          <div class="console-line system">System initialized. Waiting for client connection...</div>
+        </div>
+      </div>
+
+      <div class="message-input-container" id="messageContainer" style="display: none;">
+        <form id="messageForm" class="message-form">
+          <input 
+            type="text" 
+            id="messageInput" 
+            placeholder="Type a message to client..." 
+            autocomplete="off"
+            disabled
+          />
+          <button type="submit" disabled>Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    initServer();
+  </script>
+</body>
+</html>
