@@ -1,11 +1,12 @@
 let ws = null;
-let isServer = false;
+let isServerMonitor = false;
 let isClient = false;
 let currentSessionCode = '';
 let messageIdCounter = 0;
 let hasConnected = false;
+let clientId = null;
 
-// ✅ Stable WebSocket connection handler
+// ✅ WebSocket connection handler
 function connectWebSocket(onOpenCallback) {
   if (ws && ws.readyState === WebSocket.OPEN) {
     console.log("Already connected to WebSocket.");
@@ -29,27 +30,27 @@ function connectWebSocket(onOpenCallback) {
 
   ws.onerror = (error) => {
     console.error("❌ WebSocket error:", error);
+    showError("Connection error. Please refresh and try again.");
   };
 
   ws.onclose = () => {
     console.log("🔴 WebSocket closed");
+    
     if (isClient && hasConnected) {
-      showError("Connection lost. Please refresh and try again.");
+      showError("⚠️ Connection lost. Server unavailable.");
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 3000);
     }
   };
 }
 
-// ====================== SERVER ======================
+// ====================== SERVER MONITOR ======================
 function initServer() {
-  isServer = true;
+  isServerMonitor = true;
   connectWebSocket(() => {
-    ws.send(JSON.stringify({ type: "SERVER_INIT" }));
+    ws.send(JSON.stringify({ type: "SERVER_MONITOR" }));
   });
-
-  const messageForm = document.getElementById("messageForm");
-  if (messageForm) {
-    messageForm.addEventListener("submit", handleServerMessage);
-  }
 }
 
 // ====================== CLIENT ======================
@@ -76,6 +77,8 @@ function handleClientConnect(e) {
     return;
   }
 
+  currentSessionCode = sessionCode;
+
   connectWebSocket(() => {
     ws.send(JSON.stringify({
       type: "CLIENT_CONNECT",
@@ -85,92 +88,114 @@ function handleClientConnect(e) {
   });
 }
 
-// ====================== HANDLERS ======================
+// ====================== MESSAGE HANDLERS ======================
 function handleWebSocketMessage(data) {
   switch (data.type) {
     case "SESSION_CODE":
       displaySessionCode(data.code);
       break;
-    case "CLIENT_CONNECTED":
-      handleClientConnected(data.clientName);
+      
+    case "CLIENT_COUNT":
+      updateClientCount(data.count, data.max);
       break;
-    case "CLIENT_DISCONNECTED":
-      handleClientDisconnected();
-      break;
+      
     case "CONNECTION_ACCEPTED":
-      handleConnectionAccepted();
+      handleConnectionAccepted(data.clientId, data.waitingForOther);
       break;
+      
     case "CONNECTION_REJECTED":
       handleConnectionRejected(data.reason);
       break;
+      
+    case "CHAT_READY":
+      handleChatReady(data.message);
+      break;
+      
     case "SCP_MESSAGE":
-      handleSCPMessage(data.message, data.sender);
+      handleSCPMessage(data.message);
+      break;
+      
+    case "SESSION_ENDED":
+      handleSessionEnded(data.reason);
+      break;
+      
+    case "SERVER_SHUTDOWN":
+      handleServerShutdown(data.reason);
       break;
   }
 }
 
-// ====================== SERVER FUNCTIONS ======================
+// ====================== SERVER MONITOR FUNCTIONS ======================
 function displaySessionCode(code) {
   currentSessionCode = code;
   const codeElement = document.querySelector(".code-text");
   if (codeElement) codeElement.textContent = code;
 }
 
-function handleClientConnected(clientName) {
+function updateClientCount(count, max) {
   const statusDiv = document.getElementById("connectionStatus");
+  if (!statusDiv) return;
+  
+  let statusClass = count === 0 ? 'waiting' : (count === 1 ? 'partial' : 'connected');
+  let statusText = `Clients connected: ${count}/${max}`;
+  
+  if (count === 0) {
+    statusText = 'Waiting for clients to join...';
+  } else if (count === 1) {
+    statusText = 'Waiting for second client... (1/2 connected)';
+  } else if (count === 2) {
+    statusText = 'Both clients connected! Chat session active.';
+  }
+  
   statusDiv.innerHTML = `
-    <div class="status-indicator connected">
+    <div class="status-indicator ${statusClass}">
       <span class="status-dot"></span>
-      <span class="status-text">Connected to: ${clientName}</span>
+      <span class="status-text">${statusText}</span>
     </div>
   `;
-  addConsoleMessage("serverConsole", `Client "${clientName}" connected`, "system");
-
-  const messageInput = document.getElementById("messageInput");
-  const sendButton = document.querySelector("#messageForm button");
-  const messageContainer = document.getElementById("messageContainer");
-
-  if (messageContainer) messageContainer.style.display = "block";
-  if (messageInput) messageInput.disabled = false;
-  if (sendButton) sendButton.disabled = false;
-}
-
-function handleClientDisconnected() {
-  const statusDiv = document.getElementById("connectionStatus");
-  statusDiv.innerHTML = `
-    <div class="status-indicator waiting">
-      <span class="status-dot"></span>
-      <span class="status-text">Waiting for client...</span>
-    </div>
-  `;
-  addConsoleMessage("serverConsole", "Client disconnected", "system");
-}
-
-function handleServerMessage(e) {
-  e.preventDefault();
-  const input = document.getElementById("messageInput");
-  const text = input.value.trim();
-  if (!text) return;
-
-  const msgId = ++messageIdCounter;
-  const message = `SCP/1.1 | MSG | id=${msgId} | ${text}`;
-
-  addConsoleMessage("serverConsole", message, "server");
-  ws.send(JSON.stringify({ type: "SCP_MESSAGE", message }));
-  input.value = "";
 }
 
 // ====================== CLIENT FUNCTIONS ======================
-function handleConnectionAccepted() {
+function handleConnectionAccepted(id, waitingForOther) {
   hasConnected = true;
+  clientId = id;
+  
   document.getElementById("connectionPanel").style.display = "none";
   document.getElementById("chatContainer").style.display = "block";
-  addConsoleMessage("clientConsole", "Connected to server", "system");
+  
+  if (waitingForOther) {
+    addConsoleMessage("clientConsole", "⏳ Connected! Waiting for another client to join...", "system");
+    
+    // Disable message input until both clients connected
+    const messageInput = document.getElementById("messageInput");
+    const sendButton = document.querySelector("#messageForm button");
+    if (messageInput) {
+      messageInput.disabled = true;
+      messageInput.placeholder = "Waiting for another client...";
+    }
+    if (sendButton) sendButton.disabled = true;
+  } else {
+    addConsoleMessage("clientConsole", "✓ Connected to server. Chat session ready!", "system");
+  }
 }
 
 function handleConnectionRejected(reason) {
   showError(reason);
   if (ws) ws.close();
+}
+
+function handleChatReady(message) {
+  addConsoleMessage("clientConsole", `✓ ${message}`, "system");
+  
+  // Enable message input
+  const messageInput = document.getElementById("messageInput");
+  const sendButton = document.querySelector("#messageForm button");
+  if (messageInput) {
+    messageInput.disabled = false;
+    messageInput.placeholder = "Type a message to the other client...";
+    messageInput.focus();
+  }
+  if (sendButton) sendButton.disabled = false;
 }
 
 function handleClientMessage(e) {
@@ -182,9 +207,42 @@ function handleClientMessage(e) {
   const msgId = ++messageIdCounter;
   const message = `SCP/1.1 | MSG | id=${msgId} | ${text}`;
 
-  addConsoleMessage("clientConsole", message, "client");
+  addConsoleMessage("clientConsole", message, "sent");
   ws.send(JSON.stringify({ type: "SCP_MESSAGE", message }));
   input.value = "";
+}
+
+function handleSCPMessage(message) {
+  const consoleId = isClient ? "clientConsole" : "serverConsole";
+  addConsoleMessage(consoleId, message, "received");
+}
+
+function handleSessionEnded(reason) {
+  addConsoleMessage("clientConsole", `⚠️ ${reason}`, "error");
+  showError(reason);
+  
+  // Disable input
+  const messageInput = document.getElementById("messageInput");
+  const sendButton = document.querySelector("#messageForm button");
+  if (messageInput) {
+    messageInput.disabled = true;
+    messageInput.placeholder = "Session ended";
+  }
+  if (sendButton) sendButton.disabled = true;
+  
+  setTimeout(() => {
+    window.location.href = "/";
+  }, 3000);
+}
+
+function handleServerShutdown(reason) {
+  const consoleId = isClient ? "clientConsole" : "serverConsole";
+  addConsoleMessage(consoleId, `⚠️ ${reason}`, "error");
+  showError("⚠️ Connection lost. Server unavailable.");
+  
+  setTimeout(() => {
+    window.location.href = "/";
+  }, 2000);
 }
 
 function disconnect() {
@@ -192,24 +250,29 @@ function disconnect() {
     ws.send(JSON.stringify({ type: "DISCONNECT" }));
     ws.close();
   }
-  addConsoleMessage("clientConsole", "Disconnected from server", "system");
+  addConsoleMessage("clientConsole", "Disconnected from session", "system");
   setTimeout(() => (window.location.href = "/"), 1000);
 }
 
-// ====================== SHARED ======================
-function handleSCPMessage(message, sender) {
-  const consoleId = isServer ? "serverConsole" : "clientConsole";
-  addConsoleMessage(consoleId, message, sender);
-}
-
+// ====================== SHARED UTILITIES ======================
 function addConsoleMessage(consoleId, text, className) {
   const consoleDiv = document.getElementById(consoleId);
   if (!consoleDiv) return;
+  
   const line = document.createElement("div");
   line.className = `console-line ${className}`;
-  line.textContent = text;
+  
+  const timestamp = new Date().toLocaleTimeString();
+  line.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${escapeHtml(text)}`;
+  
   consoleDiv.appendChild(line);
   consoleDiv.scrollTop = consoleDiv.scrollHeight;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function showError(message) {
@@ -217,15 +280,26 @@ function showError(message) {
   if (errorDiv) {
     errorDiv.textContent = message;
     errorDiv.style.display = "block";
-    setTimeout(() => (errorDiv.style.display = "none"), 4000);
+    setTimeout(() => (errorDiv.style.display = "none"), 5000);
+  }
+  
+  // Also show in console if available
+  const consoleId = isClient ? "clientConsole" : "serverConsole";
+  const consoleDiv = document.getElementById(consoleId);
+  if (consoleDiv) {
+    addConsoleMessage(consoleId, message, "error");
   }
 }
 
 function copySessionCode() {
-  navigator.clipboard.writeText(currentSessionCode);
-  const btn = document.getElementById("copyBtn");
-  if (btn) {
-    btn.textContent = "✓";
-    setTimeout(() => (btn.textContent = "📋"), 2000);
-  }
+  navigator.clipboard.writeText(currentSessionCode).then(() => {
+    const btn = document.getElementById("copyBtn");
+    const icon = document.getElementById("copyIcon");
+    if (icon) {
+      icon.textContent = "✓";
+      setTimeout(() => (icon.textContent = "📋"), 2000);
+    }
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
 }
