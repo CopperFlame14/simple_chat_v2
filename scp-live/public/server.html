@@ -3,67 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCP Server Monitor</title>
+  <title>SCP Server</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
     <header class="page-header">
-      <h1>🖥️ SCP Server Monitor</h1>
+      <h1>🖥️ SCP Server</h1>
       <a href="/" class="back-btn">← Back to Home</a>
     </header>
 
     <div class="session-panel">
       <div class="session-code-display">
-        <h2>Active Session Code</h2>
+        <h2>Session Code</h2>
         <div class="code-box" id="sessionCode">
           <span class="code-text">XXXXXX</span>
           <button class="copy-btn" id="copyBtn" onclick="copySessionCode()">
             <span id="copyIcon">📋</span>
           </button>
         </div>
-        <p class="code-instruction">Share this code with both clients to connect them</p>
-        <p class="code-note">⚠️ Maximum 2 clients per session</p>
+        <p class="code-instruction">Share this code with two clients to start a chat session</p>
       </div>
 
       <div class="connection-status" id="connectionStatus">
         <div class="status-indicator waiting">
           <span class="status-dot"></span>
-          <span class="status-text">Waiting for clients to join...</span>
+          <span class="status-text">Waiting for clients... (0/2)</span>
         </div>
       </div>
     </div>
 
-    <div class="info-panel">
-      <h3>📋 Server Information</h3>
-      <div class="info-content">
-        <p>🔹 This server acts as a relay between two clients</p>
-        <p>🔹 The server does not send or receive chat messages</p>
-        <p>🔹 All messages are relayed directly between Client 1 and Client 2</p>
-        <p>🔹 When one client disconnects, the session automatically ends</p>
-        <p>🔹 A new session code is generated after each session ends</p>
+    <div class="chat-container">
+      <div class="console-panel">
+        <h3>Server Console</h3>
+        <div class="console" id="serverConsole">
+          <div class="console-line system">System initialized. Waiting for client connections...</div>
+          <div class="console-line system">This server relays messages between two clients.</div>
+        </div>
       </div>
-    </div>
 
-    <div class="status-panel">
-      <h3>🔄 Session Status</h3>
-      <div class="status-content" id="statusContent">
-        <div class="status-item">
-          <span class="status-label">Protocol:</span>
-          <span class="status-value">SCP/1.1</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Connection Type:</span>
-          <span class="status-value">WebSocket</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Session Mode:</span>
-          <span class="status-value">Two-Client Chat</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Server Status:</span>
-          <span class="status-value active">🟢 Active</span>
-        </div>
+      <div class="server-info">
+        <p style="color: #9aa7b2; text-align: center; padding: 20px;">
+          <strong>Server Mode:</strong> This instance manages sessions and relays messages between two clients.
+          <br>The server does not participate in the chat.
+        </p>
       </div>
     </div>
   </div>
